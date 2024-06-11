@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: notes-db
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - '5432:5432'
+    volumes:
+      - db:/var/lib/postgresql/data
+
+  frontend:
+    build: ../../frontend
+    environment:
+      REACT_APP_API_BASE_URL: http://localhost:8080/api
+    ports:
+      - '3000:3000'
+
+  service:
+    build: ../../backend
+    ports:
+      - '8080:8080'
+    environment:
+      spring.datasource.url: jdbc:postgresql://db:5432/notes
+      spring.datasource.user: ${POSTGRES_USER}
+      spring.datasource.password: ${POSTGRES_PASSWORD}
+    depends_on:
+      - db
+
+volumes:
+  db:
+    driver: local
